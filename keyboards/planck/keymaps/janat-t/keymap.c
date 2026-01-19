@@ -191,10 +191,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * \-----------------------------------------------------------------------------------/
  */
 [_MOUSE] = LAYOUT_planck_grid(
-    _______, _______, KC_WH_D, KC_MS_U, KC_WH_U, _______, KC_WH_L, KC_WH_D, KC_WH_U, KC_WH_R, _______, _______,
-    _______, _______, KC_MS_L, KC_MS_D, KC_MS_R, _______, KC_MS_L, KC_MS_D, KC_MS_U, KC_MS_R, _______, _______,
-    _______, _______, _______, _______, _______, KC_BTN3, KC_BTN3, _______, _______, _______, _______, _______,
-    _______, _______, _______, _______, KC_BTN2, KC_BTN1, KC_BTN1, KC_BTN2, _______, _______, _______, _______
+    _______, _______, MS_WHLD, MS_UP,   MS_WHLU, _______, MS_WHLL, MS_WHLD, MS_WHLU, MS_WHLR, _______, _______,
+    _______, _______, MS_LEFT, MS_DOWN, MS_RGHT, _______, MS_LEFT, MS_DOWN, MS_UP,   MS_RGHT, _______, _______,
+    _______, _______, _______, _______, _______, MS_BTN3, MS_BTN3, _______, _______, _______, _______, _______,
+    _______, _______, _______, _______, MS_BTN2, MS_BTN1, MS_BTN1, MS_BTN2, _______, _______, _______, _______
 ),
 
 /* Adjust (Lower + Raise)
@@ -210,8 +210,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * `-----------------------------------------------------------------------------------'
  */
 [_ADJUST] = LAYOUT_planck_grid(
-    KC_PWR,  QK_BOOT, DB_TOGG, RGB_TOG, RGB_MOD, RGB_HUI, RGB_HUD, RGB_SAI, RGB_SAD, RGB_VAI, RGB_VAD, KC_DEL,
-    _______, _______, MU_NEXT, AU_ON,   AU_OFF,  CG_NORM, CG_SWAP, QWERTY,  COLEMAK, NOMOD,   _______,  _______,
+    KC_PWR,  QK_BOOT, DB_TOGG, UG_TOGG, UG_NEXT, UG_HUEU, UG_HUED, UG_SATU, UG_SATD, UG_VALU, UG_VALD, KC_DEL ,
+    _______, _______, MU_NEXT, AU_ON,   AU_OFF,  CG_NORM, CG_SWAP, QWERTY,  COLEMAK,  NOMOD,  _______, _______,
     _______, AU_PREV, AU_NEXT, MU_ON,   MU_OFF,  MI_ON,   MI_OFF,  _______, _______, _______, _______, _______,
     _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______
 )
@@ -225,24 +225,26 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case QWERTY:
       if (record->event.pressed) {
-        print("mode just switched to qwerty and this is a huge string\n");
+        print("mode just switched to qwerty\n");
         set_single_persistent_default_layer(_QWERTY);
       }
       return false;
       break;
     case COLEMAK:
       if (record->event.pressed) {
+        print("mode just switched to colemak\n");
         set_single_persistent_default_layer(_COLEMAK);
       }
       return false;
       break;
     case NOMOD:
       if (record->event.pressed) {
+        print("mode just switched to nomod\n");
         set_single_persistent_default_layer(_NOMOD);
       }
       return false;
       break;
-  
+
   }
   return true;
 }
@@ -271,13 +273,13 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
   } else {
     if (clockwise) {
       #ifdef MOUSEKEY_ENABLE
-        tap_code(KC_MS_WH_DOWN);
+        tap_code(MS_WHLD);
       #else
         tap_code(KC_PGDN);
       #endif
     } else {
       #ifdef MOUSEKEY_ENABLE
-        tap_code(KC_MS_WH_UP);
+        tap_code(MS_WHLU);
       #else
         tap_code(KC_PGUP);
       #endif
@@ -304,6 +306,26 @@ bool dip_switch_update_user(uint8_t index, bool active) {
             }
     }
     return true;
+}
+
+bool caps_word_press_user(uint16_t keycode) {
+    switch (keycode) {
+        // Keycodes that continue Caps Word, with shift applied.
+        case KC_A ... KC_Z:
+            add_weak_mods(MOD_BIT(KC_LSFT));  // Apply shift to next key.
+            return true;
+
+        // Keycodes that continue Caps Word, without shifting.
+        case KC_1 ... KC_0:
+        case KC_BSPC:
+        case KC_DEL:
+        case KC_MINS:
+        case KC_UNDS:
+            return true;
+
+        default:
+            return false;  // Deactivate Caps Word.
+    }
 }
 
 void matrix_scan_user(void) {
